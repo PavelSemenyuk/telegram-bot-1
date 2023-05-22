@@ -9,9 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import pro.sky.telegrambot.entity.NotificationTask;
-import repository.NotificationTaskRepository;
+import pro.sky.telegrambot.repository.NotificationTaskRepository;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -30,8 +29,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     private TelegramBot telegramBot;
 
     NotificationTask notificationTask;
-
-
+    @Autowired
     private NotificationTaskRepository notificationTaskRepository;
 
     @PostConstruct
@@ -41,17 +39,19 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     @Override
     public int process(List<Update> updates) {
+        // метод обрабатывает первое сообщение /старт и возврашает сообшение ПРИВЕТСТВИЕ
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
             // Process your updates here
             if (update.message().text().equals("/start")) {
-                String messageText = "Привет " + update.message().chat().username() + ", я БОТ-НАПОМИНАЛКА!" +"\n"
-                        + "Напиши заметку в формате <01.01.2022 20:00 Выпить вина!)>, и в нужный день и время, я напомню тебе!"
-                        ;
+                String messageText = "Привет " + update.message().chat().username() + ", я БОТ-НАПОМИНАЛКА!" + "\n"
+                        + "Напиши заметку в формате <01.01.2022 20:00 Выпить вина!)>, и в нужный день и время, я напомню тебе!";
                 long chatId = update.message().chat().id();
                 SendMessage message = new SendMessage(chatId, messageText);
 
                 telegramBot.execute(message);
+            } else {
+                parseMessages(update);
             }
 
         });
@@ -60,8 +60,9 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
 
     public void parseMessages(Update update) {
+        TelegramBot bot = new TelegramBot(telegramBot.getToken());
         // проверяем является ли сообщение текстом
-        if (update.message().text()!= null ) {
+        if (update.message().text() != null) {
             String messageText = update.message().text();
             // создаем строку образец которая содержит буквы и цифры
             Pattern pattern = Pattern.compile("([0-9\\.\\:\\s]{16})\\s(.+)");
@@ -73,28 +74,29 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
                 String date = matcher.group(1);
                 String reminderText = matcher.group(2);
                 LocalDateTime dateTime = LocalDateTime.parse(date, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
-                NotificationTask notificationTask = new NotificationTask(update.message().chat().id(), reminderText, dateTime);
-                notificationTaskRepository.save(notificationTask);
+                try {
+                    NotificationTask notificationTask = new NotificationTask(update.message().chat().id(), reminderText, dateTime);
+                    notificationTaskRepository.save(notificationTask);
+                } catch (NullPointerException e) {
+                    System.out.println("Ошибка сохранения данных: " + e.getMessage());
+                }
 
                 // если все ок то отправляем даноое сообщение
                 String messageText2 = update.message().chat().username() + ", Ваше напоминание сохранено!";
                 long chatId = update.message().chat().id();
                 SendMessage replyMessage = new SendMessage(chatId, messageText2);
 
-                telegramBot.execute(replyMessage);
-
+                bot.execute(replyMessage);
 
                 // если не ок отправляем это сообщение
             } else {
-                String messageText3 = "Неверный формат напоминания. "+ update.message().chat().username() + ", пожалуйста, введите напоминание в формате дд.мм.гггг чч:мм и текст напоминание.";
+                String messageText3 = "Неверный формат напоминания. " + update.message().chat().username() + ", пожалуйста, введите напоминание в формате дд.мм.гггг чч:мм и текст напоминание.";
                 long chatId = update.message().chat().id();
                 SendMessage replyMessage = new SendMessage(chatId, messageText3);
-                telegramBot.execute(replyMessage);
-
+                bot.execute(replyMessage);
             }
         }
     }
-
 
     // метод каждую минуту сравнивает текушее время и время из базы
     @Scheduled(cron = "0 0/1 * * * *")
@@ -102,7 +104,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         // Получаем текущее время
         LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         // Ищем записи в базе данных, у которых время отправки совпадает с текущим
-        List<NotificationTask> notificationTasks = notificationTaskRepository.findByNotificationTime(currentTime);
+        List<NotificationTask> notificationTasks = notificationTaskRepository.findByNotificationTime(notificationTask.getChatId(),currentTime);
         for (NotificationTask task : notificationTasks) {
             sendNotification(task);
         }
@@ -110,14 +112,13 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
     // метод для отправки сообшения нужному пользователю и удалению этого сообщения из базы
     private void sendNotification(NotificationTask task) {
+        TelegramBot bot = new TelegramBot(telegramBot.getToken());
         Long chatId = task.getChatId();
         String notificationText = task.getNotificationText();
 
         SendMessage message = new SendMessage(chatId, notificationText);
-        telegramBot.execute(message);
+        bot.execute(message);
         notificationTaskRepository.delete(task);
 
     }
-
-
 }
