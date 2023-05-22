@@ -43,7 +43,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         updates.forEach(update -> {
             logger.info("Processing update: {}", update);
             // Process your updates here
-            if (update.message().text().equals("/start")) {
+            if ("/start".equals(update.message().text())) {
                 String messageText = "Привет " + update.message().chat().username() + ", я БОТ-НАПОМИНАЛКА!" + "\n"
                         + "Напиши заметку в формате <01.01.2022 20:00 Выпить вина!)>, и в нужный день и время, я напомню тебе!";
                 long chatId = update.message().chat().id();
