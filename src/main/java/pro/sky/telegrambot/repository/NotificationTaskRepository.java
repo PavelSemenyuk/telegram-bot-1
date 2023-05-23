@@ -12,10 +12,9 @@ import java.util.List;
 @Repository
 public interface NotificationTaskRepository extends JpaRepository<NotificationTask, Long> {
 
-
-    @Query(value = "SELECT * FROM notification_task " +
-            "WHERE chat_id = :chatId " +
-            "AND notification_time > :currentTime",
-            nativeQuery = true)
-    List<NotificationTask> findAllByNotificationDate(@Param("chatId") Long chatId, @Param("currentTime") LocalDateTime currentTime);
+//    @Query(value = "SELECT * FROM notification_task " +
+//            "WHERE chat_id = :chatId " +
+//            "AND notification_time > :currentTime",
+//            nativeQuery = true)
+    List<NotificationTask> findAllByNotificationDate( LocalDateTime currentTime);
 }

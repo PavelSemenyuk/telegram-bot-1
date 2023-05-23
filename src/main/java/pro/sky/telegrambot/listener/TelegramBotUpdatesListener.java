@@ -103,7 +103,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         // Получаем текущее время
         LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         // Ищем записи в базе данных, у которых время отправки совпадает с текущим
-        List<NotificationTask> notificationTasks = notificationTaskRepository.findAllByNotificationDate(notificationTask.getChatId(), currentTime);
+        List<NotificationTask> notificationTasks = notificationTaskRepository.findAllByNotificationDate(currentTime);
         for (NotificationTask task : notificationTasks) {
             sendNotification(task);
         }
