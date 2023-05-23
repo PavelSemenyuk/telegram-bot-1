@@ -58,7 +58,6 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-
     public void parseMessages(Update update) {
         TelegramBot bot = new TelegramBot(telegramBot.getToken());
         // проверяем является ли сообщение текстом
@@ -104,7 +103,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         // Получаем текущее время
         LocalDateTime currentTime = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         // Ищем записи в базе данных, у которых время отправки совпадает с текущим
-        List<NotificationTask> notificationTasks = notificationTaskRepository.findAllByNotificationDate(notificationTask.getChatId(),currentTime);
+        List<NotificationTask> notificationTasks = notificationTaskRepository.findAllByNotificationDate(notificationTask.getChatId(), currentTime);
         for (NotificationTask task : notificationTasks) {
             sendNotification(task);
         }
@@ -118,7 +117,5 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
         SendMessage message = new SendMessage(chatId, notificationText);
         bot.execute(message);
-
-
     }
 }
