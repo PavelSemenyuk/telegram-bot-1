@@ -5,14 +5,14 @@ package pro.sky.telegrambot.entity;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import javax.persistence.Id;
 
 @Entity
 @Table(name = "notification_task")
 public class NotificationTask {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+
 
     @Column(name = "chat_id")
     private Long chatId;
@@ -33,14 +33,6 @@ public class NotificationTask {
     }
 
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Long getChatId() {
         return chatId;
@@ -71,19 +63,18 @@ public class NotificationTask {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NotificationTask that = (NotificationTask) o;
-        return Objects.equals(id, that.id) && Objects.equals(chatId, that.chatId) && Objects.equals(notificationText, that.notificationText) && Objects.equals(notificationDate, that.notificationDate);
+        return  Objects.equals(chatId, that.chatId) && Objects.equals(notificationText, that.notificationText) && Objects.equals(notificationDate, that.notificationDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, chatId, notificationText, notificationDate);
+        return Objects.hash( chatId, notificationText, notificationDate);
     }
 
     @Override
     public String toString() {
         return "NotificationTask{" +
-                "id=" + id +
-                ", chatId=" + chatId +
+                "chatId=" + chatId +
                 ", notificationText='" + notificationText + '\'' +
                 ", notificationDate=" + notificationDate +
                 '}';

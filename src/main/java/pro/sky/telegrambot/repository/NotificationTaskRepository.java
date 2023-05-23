@@ -17,5 +17,5 @@ public interface NotificationTaskRepository extends JpaRepository<NotificationTa
             "WHERE chat_id = :chatId " +
             "AND notification_time > :currentTime",
             nativeQuery = true)
-    List<NotificationTask> findByNotificationTime(@Param("chatId") Long chatId, @Param("notificationTime") LocalDateTime currentTime);
+    List<NotificationTask> findAllByNotificationDate(@Param("chatId") Long chatId, @Param("currentTime") LocalDateTime currentTime);
 }
